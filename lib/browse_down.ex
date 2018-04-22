@@ -58,7 +58,7 @@ defmodule BrowseDown do
   defp html_body_from_markdown(file) do
     case Earmark.as_html(IO.read(file, :all), earmark_options()) do
       {:ok, html_doc, []} -> html_doc
-      _ -> ""
+      _ -> "<p style=\"color:red;\">Could not parse markdown</p>"
     end
   end
 

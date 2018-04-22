@@ -7,7 +7,8 @@ defmodule BrowseDown.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      escript: escript()
     ]
   end
 
@@ -26,5 +27,9 @@ defmodule BrowseDown.MixProject do
       {:dogma, "~> 0.1", only: :dev},
       {:credo, "~> 0.7", only: :dev}
     ]
+  end
+
+  defp escript do
+    [main_module: BrowseDown.CLI]
   end
 end
