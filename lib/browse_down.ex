@@ -6,26 +6,35 @@ defmodule BrowseDown do
   @doc """
   ## Examples
 
-      iex> BrowseDown.view
+      iex> BrowseDown.pick
 
   """
   def pick do
-    path = "/Users/upgraydd/Desktop/iex.md"
+    path = select_random("/Users/upgraydd/Desktop/markdown_notes")
     case open_file(path) do
       {:ok, file}     -> render_to_browser(file, path)
       {:error, error} -> IO.puts error
     end
   end
 
-  defp open_file(path) do: File.open(path, [:read])
-
-  defp render_to_browser(file, path) do
+  def render_to_browser(file, path) do
     {:ok, temp} = Briefly.create([extname: '.html'])
     markup = html_head(Path.basename(path)) <> html_body_from_markdown(file)
     File.write!(temp, markup)
     System.cmd("open", [temp])
     File.close(file)
   end
+
+  defp select_random(basepath) do
+    "#{basepath}/**/*.{md,markdown}"
+    |> Path.wildcard
+    |> Enum.random
+  end
+
+  defp open_file(path) do
+    File.open(path, [:read])
+  end
+
 
   defp html_head(basename) do
   """
@@ -48,7 +57,8 @@ defmodule BrowseDown do
 
   defp html_body_from_markdown(file) do
     case Earmark.as_html(IO.read(file, :all), earmark_options()) do
-      {:ok, html_doc, []} -> open_in_browser(html_doc)
+      {:ok, html_doc, []} -> html_doc
+      _ -> ""
     end
   end
 
