@@ -6,46 +6,53 @@ defmodule BrowseDown do
   @doc """
   ## Examples
 
-      iex> BrowseDown.parse
+      iex> BrowseDown.view
 
   """
-  def view do
-    case open_file() do
-      {:ok, file} -> parse_file(file)
+  def pick do
+    path = "/Users/upgraydd/Desktop/iex.md"
+    case open_file(path) do
+      {:ok, file}     -> render_to_browser(file, path)
+      {:error, error} -> IO.puts error
     end
   end
 
-  defp open_file do
-    File.open("/Users/upgraydd/Desktop/iex.md", [:read])
+  defp open_file(path) do: File.open(path, [:read])
+
+  defp render_to_browser(file, path) do
+    {:ok, temp} = Briefly.create([extname: '.html'])
+    markup = html_head(Path.basename(path)) <> html_body_from_markdown(file)
+    File.write!(temp, markup)
+    System.cmd("open", [temp])
+    File.close(file)
   end
 
-  defp parse_file(file) do
+  defp html_head(basename) do
+  """
+  <head>
+    <title>#{basename}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="#{stylesheet_asset_path()}" />
+    <script src="#{javascript_asset_path()}"></script>
+  </head>
+  """
+  end
+
+  defp javascript_asset_path do
+    Path.expand("assets/prism.js")
+  end
+
+  defp stylesheet_asset_path do
+    Path.expand("assets/prism.css")
+  end
+
+  defp html_body_from_markdown(file) do
     case Earmark.as_html(IO.read(file, :all), earmark_options()) do
       {:ok, html_doc, []} -> open_in_browser(html_doc)
     end
-    File.close(file)
   end
 
   defp earmark_options do
     %Earmark.Options{code_class_prefix: "lang- language-"}
-  end
-
-  defp open_in_browser(html) do
-    {:ok, path} = Briefly.create([extname: '.html'])
-    markup = html_head() <> html
-    File.write!(path, markup)
-    System.cmd("open", [path])
-  end
-
-  defp html_head do
-    """
-    <head>
-      <title>Your Stuff</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.14.0/themes/prism-solarizedlight.css" />
-      <script src="https://cdn.jsdelivr.net/npm/prismjs@1.14.0/prism.min.js"></script>
-      <script src="https://cdn.jsdelivr.net/npm/prismjs@1.14.0/components/prism-elixir.js"></script>
-    </head>
-    """
   end
 end
