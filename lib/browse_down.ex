@@ -9,20 +9,24 @@ defmodule BrowseDown do
       iex> BrowseDown.pick
 
   """
-  def pick do
-    path = select_random("/Users/upgraydd/Desktop/markdown_notes")
-    case open_file(path) do
-      {:ok, file}     -> render_to_browser(file, path)
-      {:error, error} -> IO.puts error
-    end
+  def pick(dir) do
+    dir
+    |> select_random
+    |> open_file
+    |> render_to_browser
   end
 
-  def render_to_browser(file, path) do
+  def render_to_browser({:ok, file, file_name}) do
     {:ok, temp} = Briefly.create([extname: '.html'])
-    markup = html_head(Path.basename(path)) <> html_body_from_markdown(file)
+    markup = html_head(file_name) <> html_body_from_markdown(file)
     File.write!(temp, markup)
     System.cmd("open", [temp])
     File.close(file)
+    File.rm(temp)
+  end
+
+  def render_to_browser({:error, message}) do
+    IO.puts message
   end
 
   defp select_random(basepath) do
@@ -32,9 +36,13 @@ defmodule BrowseDown do
   end
 
   defp open_file(path) do
-    File.open(path, [:read])
+    path
+    |> File.open([:read])
+    |> case do
+         {:ok, file}     -> {:ok, file, Path.basename(path)}
+         {:error, error} -> {:error, error}
+       end
   end
-
 
   defp html_head(basename) do
   """
