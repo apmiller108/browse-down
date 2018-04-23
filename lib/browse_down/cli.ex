@@ -1,17 +1,20 @@
 defmodule BrowseDown.CLI do
   def main(args) do
-    parse_args(args) |> process_args
+    args
+    |> parse_args
+    |> process_args
   end
 
   defp parse_args(args) do
-    {params, _, _} = OptionParser.parse(args, switches: [path: :string])
+    {params, _, _} = OptionParser.parse(args, switches: [dir: :string])
     params
   end
 
-  defp process_args([path: path]) do
+  defp process_args([dir: dir]) do
+    BrowseDown.pick(dir)
   end
 
   defp process_args(_) do
-    IO.puts "--path flag is required\n Example:\n\s\s--path=/path/to/notes"
+    IO.puts "--dir flag is required\n Example:\n\s\s--dir=/path/to/notes"
   end
 end
