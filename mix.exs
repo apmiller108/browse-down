@@ -25,6 +25,7 @@ defmodule BrowseDown.MixProject do
     [
       {:earmark, "~> 1.2"},
       {:briefly, "~> 0.3.0"},
+      {:distillery, "~> 1.5"},
       {:dogma, "~> 0.1", only: :dev},
       {:credo, "~> 0.7", only: :dev}
     ]

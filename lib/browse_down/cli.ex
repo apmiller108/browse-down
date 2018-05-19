@@ -11,7 +11,7 @@ defmodule BrowseDown.CLI do
   end
 
   defp process_args([dir: dir]) do
-    BrowseDown.pick(dir)
+    # TODO: implement start and stopping of the daemonized app
   end
 
   defp process_args(_) do
