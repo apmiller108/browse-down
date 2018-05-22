@@ -1,4 +1,7 @@
 defmodule BrowseDown.CLI do
+  @moduledoc false
+  alias BrowseDown.RenderServer
+
   def main(args) do
     args
     |> parse_args
@@ -11,10 +14,18 @@ defmodule BrowseDown.CLI do
   end
 
   defp process_args([dir: dir]) do
-    # TODO: implement start and stopping of the daemonized app
+    dir
+    |> RenderServer.select_random
+    |> open_in_browser
   end
 
   defp process_args(_) do
-    IO.puts "--dir flag is required\n Example:\n\s\s--dir=/path/to/notes"
+    # RenderServer.select_random |> open_in_browser
+  end
+
+  defp open_in_browser(path) do
+    path
+    |> RenderServer.open_file
+    |> RenderServer.render_to_browser
   end
 end

@@ -9,7 +9,7 @@ defmodule BrowseDown.ClockServer do
   end
 
   def start_work(server) do
-    GenServer.call(server, :work)
+    GenServer.cast(server, :work)
   end
 
   # Server
@@ -18,9 +18,9 @@ defmodule BrowseDown.ClockServer do
     {:ok, state}
   end
 
-  def handle_call(:work, _from, state) do
+  def handle_cast(:work, state) do
     schedule_work()
-    {:reply, :ok, state}
+    {:noreply, state}
   end
 
   def handle_info(:work, state) do

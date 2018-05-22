@@ -2,6 +2,7 @@ defmodule BrowseDown.RenderServer do
   @moduledoc false
   use GenServer
   # TODO: make this configurable
+  # TODO: handle assets better
   @base_path "/Users/upgraydd/Desktop/markdown_notes"
 
   # Client
@@ -11,7 +12,7 @@ defmodule BrowseDown.RenderServer do
   end
 
   def render(server) do
-    GenServer.cast(server, :render)
+    GenServer.call(server, :render)
   end
 
   # Server
@@ -21,24 +22,30 @@ defmodule BrowseDown.RenderServer do
     {:ok, state}
   end
 
-  def handle_cast(:render, state) do
+  def handle_call(:render, _form, state) do
     BrowseDown.TaskSupervisor
     |> Task.Supervisor.async(fn -> select_random() end)
     |> Task.await()
     |> open_file
     |> render_to_browser
-    {:noreply, state}
+    {:reply, :ok, state}
   end
 
   # Helper Functions
 
-  defp select_random do
+  def select_random do
     "#{@base_path}/**/*.{md,markdown}"
     |> Path.wildcard
     |> Enum.random
   end
 
-  defp open_file(path) do
+  def select_random(path) do
+    "#{path}/**/*.{md,markdown}"
+    |> Path.wildcard
+    |> Enum.random
+  end
+
+  def open_file(path) do
     path
     |> File.open([:read])
     |> case do
