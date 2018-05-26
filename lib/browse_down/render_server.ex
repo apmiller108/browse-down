@@ -1,8 +1,8 @@
 defmodule BrowseDown.RenderServer do
   @moduledoc false
+  @prism_css File.read! "priv/prism.css"
+  @prism_js File.read! "priv/prism.js"
   use GenServer
-  # TODO: make this configurable
-  # TODO: handle assets better
   @base_path "/Users/upgraydd/Desktop/markdown_notes"
 
   # Client
@@ -28,6 +28,7 @@ defmodule BrowseDown.RenderServer do
     |> Task.await()
     |> open_file
     |> render_to_browser
+    |> cleanup_tempfiles
     {:reply, :ok, state}
   end
 
@@ -55,35 +56,50 @@ defmodule BrowseDown.RenderServer do
   end
 
   def render_to_browser({:ok, file, file_name}) do
-    {:ok, temp} = Briefly.create([extname: '.html'])
-    markup = html_head(file_name) <> html_body_from_markdown(file)
-    File.write!(temp, markup)
-    System.cmd("open", [temp])
+    {:ok, temp_dir} = Briefly.create(directory: true)
+    markup = build_html(file, file_name, temp_dir)
+    page = Path.join(temp_dir, "#{file_name}.html")
+    File.write!(page, markup)
+    System.cmd("open", [page])
     File.close(file)
-    File.rm(temp)
+    {:ok, temp_dir}
   end
 
   def render_to_browser({:error, message}) do
     IO.puts message
   end
 
-  defp html_head(basename) do
+  defp build_html(file, file_name, temp_dir) do
+    {:ok, stylesheet} = write_style_sheet(temp_dir)
+    {:ok, javascript}  = write_js(temp_dir)
+    html_head(file_name, stylesheet, javascript) <> html_body_from_markdown(file)
+  end
+
+  defp write_style_sheet(temp_dir) do
+    stylesheet = Path.join(temp_dir, "prism.css")
+    File.write!(stylesheet, prism_css())
+    {:ok, stylesheet}
+  end
+
+  defp write_js(temp_dir) do
+    js = Path.join(temp_dir, "prism.js")
+    File.write!(js, prism_js())
+    {:ok, js}
+  end
+
+  defp prism_css, do: @prism_css
+
+  defp prism_js, do: @prism_js
+
+  defp html_head(file_name, stylesheet, javascript) do
     """
     <head>
-    <title>#{basename}</title>
+    <title>#{file_name}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="#{stylesheet_asset_path()}" />
-    <script src="#{javascript_asset_path()}"></script>
+    <link rel="stylesheet" href="#{stylesheet}" />
+    <script src="#{javascript}"></script>
     </head>
     """
-  end
-
-  defp javascript_asset_path do
-    Path.expand("assets/prism.js")
-  end
-
-  defp stylesheet_asset_path do
-    Path.expand("assets/prism.css")
   end
 
   defp html_body_from_markdown(file) do
@@ -95,5 +111,24 @@ defmodule BrowseDown.RenderServer do
 
   defp earmark_options do
     %Earmark.Options{code_class_prefix: "lang- language-"}
+  end
+
+  defp cleanup_tempfiles({:ok, temp_dir}) do
+    {:ok, files} = File.ls(temp_dir)
+    delete_files(expand(files, temp_dir))
+    File.rmdir!(temp_dir)
+  end
+
+  defp expand(files, dir) do
+    Enum.map(files, fn(file) -> "#{dir}/#{file}" end)
+  end
+
+  defp delete_files([]) do
+    []
+  end
+
+  defp delete_files([path | rest]) do
+    File.rm!(path)
+    delete_files(rest)
   end
 end
