@@ -28,6 +28,8 @@ defmodule BrowseDown.ClockServer do
     {:noreply, state}
   end
 
+  # Helper Functions
+
   defp schedule_work() do
     BrowseDown.RenderServer.render(BrowseDown.RenderServer)
     Process.send_after(self(), :work, hours_to_ms(2))

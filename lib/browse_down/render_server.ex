@@ -3,6 +3,7 @@ defmodule BrowseDown.RenderServer do
   @prism_css File.read! "priv/prism.css"
   @prism_js File.read! "priv/prism.js"
   use GenServer
+  # TODO: make this an config var
   @base_path "/Users/upgraydd/Desktop/markdown_notes"
 
   # Client
@@ -23,16 +24,23 @@ defmodule BrowseDown.RenderServer do
   end
 
   def handle_call(:render, _form, state) do
+    case render do
+      {:ok, temp_dir} ->
+        BrowseDown.AppState.put_dir(temp_dir)
+        {:reply, :ok, state}
+      _ -> {:reply, :ok, state}
+    end
+  end
+
+  # Helper Functions
+
+  def render do
     BrowseDown.TaskSupervisor
     |> Task.Supervisor.async(fn -> select_random() end)
     |> Task.await()
     |> open_file
     |> render_to_browser
-    |> cleanup_tempfiles
-    {:reply, :ok, state}
   end
-
-  # Helper Functions
 
   def select_random do
     "#{@base_path}/**/*.{md,markdown}"
@@ -65,13 +73,9 @@ defmodule BrowseDown.RenderServer do
     {:ok, temp_dir}
   end
 
-  def render_to_browser({:error, message}) do
-    IO.puts message
-  end
-
   defp build_html(file, file_name, temp_dir) do
     {:ok, stylesheet} = write_style_sheet(temp_dir)
-    {:ok, javascript}  = write_js(temp_dir)
+    {:ok, javascript} = write_js(temp_dir)
     html_head(file_name, stylesheet, javascript) <> html_body_from_markdown(file)
   end
 

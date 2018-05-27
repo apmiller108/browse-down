@@ -13,6 +13,7 @@ defmodule BrowseDown.Supervisor do
   def init(:ok) do
     children = [
       {Task.Supervisor, name: BrowseDown.TaskSupervisor},
+      {BrowseDown.AppState, name: BrowseDown.AppState},
       {BrowseDown.ClockServer, name: BrowseDown.ClockServer},
       {BrowseDown.RenderServer, name: BrowseDown.RenderServer}
     ]
