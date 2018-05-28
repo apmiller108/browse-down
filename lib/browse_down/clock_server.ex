@@ -8,7 +8,7 @@ defmodule BrowseDown.ClockServer do
     GenServer.start_link(__MODULE__, %{}, opts)
   end
 
-  def start_work(server) do
+  def start_clock(server) do
     GenServer.cast(server, :work)
   end
 
@@ -19,20 +19,20 @@ defmodule BrowseDown.ClockServer do
   end
 
   def handle_cast(:work, state) do
-    schedule_work()
+    BrowseDown.RenderServer.render(BrowseDown.RenderServer)
+    schedule_browse_down()
     {:noreply, state}
   end
 
   def handle_info(:work, state) do
-    schedule_work()
+    schedule_browse_down()
     {:noreply, state}
   end
 
   # Helper Functions
 
-  defp schedule_work() do
-    BrowseDown.RenderServer.render(BrowseDown.RenderServer)
-    Process.send_after(self(), :work, hours_to_ms(2))
+  defp schedule_browse_down() do
+    Process.send_after(self(), :work, hours_to_ms(24))
   end
 
   defp hours_to_ms(hours) do

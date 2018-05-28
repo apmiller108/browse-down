@@ -19,13 +19,14 @@ defmodule BrowseDown.RenderServer do
   # Server
 
   def init(state) do
-    BrowseDown.ClockServer.start_work(BrowseDown.ClockServer)
+    BrowseDown.ClockServer.start_clock(BrowseDown.ClockServer)
     {:ok, state}
   end
 
   def handle_call(:render, _form, state) do
     case render do
       {:ok, temp_dir} ->
+        BrowseDown.AppState.cleanup()
         BrowseDown.AppState.put_dir(temp_dir)
         {:reply, :ok, state}
       _ -> {:reply, :ok, state}
@@ -35,6 +36,7 @@ defmodule BrowseDown.RenderServer do
   # Helper Functions
 
   def render do
+    # TODO: Remove task
     BrowseDown.TaskSupervisor
     |> Task.Supervisor.async(fn -> select_random() end)
     |> Task.await()
@@ -63,6 +65,7 @@ defmodule BrowseDown.RenderServer do
        end
   end
 
+  # TODO: Move file writing logic to GenServer
   def render_to_browser({:ok, file, file_name}) do
     {:ok, temp_dir} = Briefly.create(directory: true)
     markup = build_html(file, file_name, temp_dir)
@@ -115,24 +118,5 @@ defmodule BrowseDown.RenderServer do
 
   defp earmark_options do
     %Earmark.Options{code_class_prefix: "lang- language-"}
-  end
-
-  defp cleanup_tempfiles({:ok, temp_dir}) do
-    {:ok, files} = File.ls(temp_dir)
-    delete_files(expand(files, temp_dir))
-    File.rmdir!(temp_dir)
-  end
-
-  defp expand(files, dir) do
-    Enum.map(files, fn(file) -> "#{dir}/#{file}" end)
-  end
-
-  defp delete_files([]) do
-    []
-  end
-
-  defp delete_files([path | rest]) do
-    File.rm!(path)
-    delete_files(rest)
   end
 end
