@@ -27,7 +27,8 @@ defmodule BrowseDown.MixProject do
       {:briefly, "~> 0.3.0"},
       {:distillery, "~> 1.5", runtime: false},
       {:dogma, "~> 0.1", only: :dev},
-      {:credo, "~> 0.7", only: :dev}
+      {:credo, "~> 0.7", only: :dev},
+      {:dialyxir, "~> 0.5", only: :dev, runtime: false}
     ]
   end
 
