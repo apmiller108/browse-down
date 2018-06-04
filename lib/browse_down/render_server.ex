@@ -1,8 +1,8 @@
 defmodule BrowseDown.RenderServer do
   @moduledoc false
-  @prism_css File.read! "priv/prism.css"
-  @prism_js File.read! "priv/prism.js"
+
   use GenServer
+
   # TODO: make this an config var
   @base_path "/Users/upgraydd/Desktop/markdown_notes"
 
@@ -24,99 +24,46 @@ defmodule BrowseDown.RenderServer do
   end
 
   def handle_call(:render, _form, state) do
-    case render do
-      {:ok, temp_dir} ->
-        BrowseDown.AppState.cleanup()
-        BrowseDown.AppState.put_dir(temp_dir)
-        {:reply, :ok, state}
-      _ -> {:reply, :ok, state}
+    case render() do
+      {:ok, html} -> {:reply, {:ok, html}, state}
+      {:error, markdown} -> {:reply, {:error, markdown}, state}
     end
   end
 
   # Helper Functions
 
   def render do
-    # TODO: Remove task
-    BrowseDown.TaskSupervisor
-    |> Task.Supervisor.async(fn -> select_random() end)
-    |> Task.await()
-    |> open_file
-    |> render_to_browser
-  end
-
-  def select_random do
     "#{@base_path}/**/*.{md,markdown}"
-    |> Path.wildcard
-    |> Enum.random
+    |> select_random_file
+    |> open_file
+    |> convert_to_html
+    |> open_in_browser
   end
 
-  def select_random(path) do
-    "#{path}/**/*.{md,markdown}"
-    |> Path.wildcard
-    |> Enum.random
-  end
-
-  def open_file(path) do
+  defp select_random_file(path) do
     path
-    |> File.open([:read])
-    |> case do
-         {:ok, file}     -> {:ok, file, Path.basename(path)}
-         {:error, error} -> {:error, error}
-       end
+    |> Path.wildcard
+    |> Enum.random
   end
 
-  # TODO: Move file writing logic to GenServer
-  def render_to_browser({:ok, file, file_name}) do
-    {:ok, temp_dir} = Briefly.create(directory: true)
-    markup = build_html(file, file_name, temp_dir)
-    page = Path.join(temp_dir, "#{file_name}.html")
-    File.write!(page, markup)
-    System.cmd("open", [page])
-    File.close(file)
-    {:ok, temp_dir}
+  defp open_file(path) do
+    {:ok, file} = File.open(path, [:read])
+    {:ok, file, path}
   end
 
-  defp build_html(file, file_name, temp_dir) do
-    {:ok, stylesheet} = write_style_sheet(temp_dir)
-    {:ok, javascript} = write_js(temp_dir)
-    html_head(file_name, stylesheet, javascript) <> html_body_from_markdown(file)
-  end
-
-  defp write_style_sheet(temp_dir) do
-    stylesheet = Path.join(temp_dir, "prism.css")
-    File.write!(stylesheet, prism_css())
-    {:ok, stylesheet}
-  end
-
-  defp write_js(temp_dir) do
-    js = Path.join(temp_dir, "prism.js")
-    File.write!(js, prism_js())
-    {:ok, js}
-  end
-
-  defp prism_css, do: @prism_css
-
-  defp prism_js, do: @prism_js
-
-  defp html_head(file_name, stylesheet, javascript) do
-    """
-    <head>
-    <title>#{file_name}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="#{stylesheet}" />
-    <script src="#{javascript}"></script>
-    </head>
-    """
-  end
-
-  defp html_body_from_markdown(file) do
-    case Earmark.as_html(IO.read(file, :all), earmark_options()) do
-      {:ok, html_doc, []} -> html_doc
-      _ -> "<p style=\"color:red;\">Could not parse markdown</p>"
+  defp convert_to_html({:ok, file, path}, converter \\ BrowseDown.MarkdownConverter) do
+    case converter.convert(file, path) do
+      {:ok, document} -> {:ok, document}
+      {:error, reason, path} -> {:error, path}
     end
   end
 
-  defp earmark_options do
-    %Earmark.Options{code_class_prefix: "lang- language-"}
+  defp open_in_browser({:ok, document}) do
+    System.cmd("open", [document])
+    {:ok, document}
+  end
+
+  defp open_in_browser({:error, markdown}) do
+    {:error, markdown}
   end
 end

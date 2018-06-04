@@ -12,10 +12,10 @@ defmodule BrowseDown.Supervisor do
 
   def init(:ok) do
     children = [
-      {Task.Supervisor, name: BrowseDown.TaskSupervisor},
       {BrowseDown.AppState, name: BrowseDown.AppState},
       {BrowseDown.ClockServer, name: BrowseDown.ClockServer},
-      {BrowseDown.RenderServer, name: BrowseDown.RenderServer}
+      {BrowseDown.RenderServer, name: BrowseDown.RenderServer},
+      {BrowseDown.MarkdownConverter, name: MarkdownConverter}
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

@@ -19,9 +19,15 @@ defmodule BrowseDown.ClockServer do
   end
 
   def handle_cast(:work, state) do
-    BrowseDown.RenderServer.render(BrowseDown.RenderServer)
-    schedule_browse_down()
-    {:noreply, state}
+    case BrowseDown.RenderServer.render(BrowseDown.RenderServer) do
+      {:ok, _html} ->
+        schedule_browse_down()
+        {:noreply, state}
+      {:error, markdown} ->
+        IO.puts "Error rendering #{markdown}"
+        schedule_browse_down()
+        {:noreply, state}
+    end
   end
 
   def handle_info(:work, state) do
