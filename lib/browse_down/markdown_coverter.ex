@@ -2,7 +2,6 @@ defmodule BrowseDown.MarkdownConverter do
   @moduledoc """
   Converts markdown to HTML.  Writes HTML document with CSS and JS assets
   needed for syntax highlighting.
-
   """
 
   use GenServer

@@ -1,6 +1,10 @@
 defmodule BrowseDown.ClockServer do
-  @moduledoc false
+  @moduledoc """
+  Schedules calls to the RenderServer at regular intervals.
+  """
   use GenServer
+
+  alias BrowseDown.RenderServer
 
   # Client
 
@@ -19,13 +23,12 @@ defmodule BrowseDown.ClockServer do
   end
 
   def handle_cast(:work, state) do
-    case BrowseDown.RenderServer.render(BrowseDown.RenderServer) do
-      {:ok, _html} ->
-        schedule_browse_down()
-        {:noreply, state}
+    schedule_browse_down()
+    case RenderServer.render(RenderServer) do
+      {:ok, _html} -> {:noreply, state}
       {:error, markdown} ->
+        # TODO: Log errors
         IO.puts "Error rendering #{markdown}"
-        schedule_browse_down()
         {:noreply, state}
     end
   end

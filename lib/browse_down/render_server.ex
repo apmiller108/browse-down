@@ -1,10 +1,16 @@
 defmodule BrowseDown.RenderServer do
-  @moduledoc false
+  @moduledoc """
+  Selects and opens a random markdown file.  Calls MarkdownConverter with the
+  randomly selected markdown.  Opens the returned HTML document in the system's
+  default browser.
+  """
+
+  @base_path Application.get_env(:browse_down, :markdown_dir)
 
   use GenServer
 
-  # TODO: make this an config var
-  @base_path "/Users/upgraydd/Desktop/markdown_notes"
+  alias BrowseDown.ClockServer
+
 
   # Client
 
@@ -19,7 +25,7 @@ defmodule BrowseDown.RenderServer do
   # Server
 
   def init(state) do
-    BrowseDown.ClockServer.start_clock(BrowseDown.ClockServer)
+    ClockServer.start_clock(ClockServer)
     {:ok, state}
   end
 
