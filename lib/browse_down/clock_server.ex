@@ -13,7 +13,7 @@ defmodule BrowseDown.ClockServer do
   end
 
   def start_clock(server) do
-    GenServer.cast(server, :work)
+    GenServer.cast(server, :start)
   end
 
   # Server
@@ -22,7 +22,12 @@ defmodule BrowseDown.ClockServer do
     {:ok, state}
   end
 
-  def handle_cast(:work, state) do
+  def handle_cast(:start, state) do
+    schedule_browse_down()
+    {:noreply, state}
+  end
+
+  def handle_info(:work, state) do
     schedule_browse_down()
     case RenderServer.render(RenderServer) do
       {:ok, _html} -> {:noreply, state}
@@ -31,10 +36,6 @@ defmodule BrowseDown.ClockServer do
         IO.puts "Error rendering #{markdown}"
         {:noreply, state}
     end
-  end
-
-  def handle_info(:work, state) do
-    schedule_browse_down()
     {:noreply, state}
   end
 
