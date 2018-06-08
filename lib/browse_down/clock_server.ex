@@ -6,6 +6,8 @@ defmodule BrowseDown.ClockServer do
 
   alias BrowseDown.RenderServer
 
+  @default_interval "24"
+
   # Client
 
   def start_link(opts) do
@@ -42,10 +44,11 @@ defmodule BrowseDown.ClockServer do
   # Helper Functions
 
   defp schedule_browse_down() do
-    Process.send_after(self(), :work, hours_to_ms(24))
+    inverval = Application.get_env(:browse_down, :interval) || @default_interval
+    Process.send_after(self(), :work, hours_to_ms(inverval))
   end
 
-  defp hours_to_ms(hours) do
-    hours * 60 * 60 * 1000
+  defp hours_to_ms(hours) when is_binary(hours) do
+    String.to_integer(hours) * 60 * 60 * 1000
   end
 end

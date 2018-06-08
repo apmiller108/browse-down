@@ -1,5 +1,12 @@
 # BrowseDown
 
+TODOs:
+[ ] Move clock interval to env
+[ ] Fix CLI
+[ ] Log errors
+[ ] Write more tests
+[ ] Write the readme
+
 **TODO: Add description**
 
 ## Installation
