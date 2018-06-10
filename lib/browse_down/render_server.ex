@@ -5,12 +5,9 @@ defmodule BrowseDown.RenderServer do
   default browser.
   """
 
-  @base_path Application.get_env(:browse_down, :markdown_dir)
-
   use GenServer
 
   alias BrowseDown.ClockServer
-
 
   # Client
 
@@ -39,7 +36,7 @@ defmodule BrowseDown.RenderServer do
   # Helper Functions
 
   def render do
-    "#{@base_path}/**/*.{md,markdown}"
+    "#{Application.get_env(:browse_down, :markdown_dir)}/**/*.{md,markdown}"
     |> select_random_file
     |> open_file
     |> convert_to_html

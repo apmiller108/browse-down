@@ -1,7 +1,7 @@
 # BrowseDown
 
 TODOs:
-[ ] Move clock interval to env
+[x] Move clock interval to env
 [ ] Fix CLI
 [ ] Log errors
 [ ] Write more tests

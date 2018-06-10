@@ -32,9 +32,11 @@ defmodule BrowseDown.ClockServer do
   def handle_info(:work, state) do
     schedule_browse_down()
     case RenderServer.render(RenderServer) do
-      {:ok, _html} -> {:noreply, state}
+      # TODO: Log events
+      {:ok, _html} ->
+        IO.puts "Success"
+        {:noreply, state}
       {:error, markdown} ->
-        # TODO: Log errors
         IO.puts "Error rendering #{markdown}"
         {:noreply, state}
     end
@@ -49,6 +51,7 @@ defmodule BrowseDown.ClockServer do
   end
 
   defp hours_to_ms(hours) when is_binary(hours) do
-    String.to_integer(hours) * 60 * 60 * 1000
+    {hours_float, _} = Float.parse(hours)
+    trunc(hours_float * 60 * 60 * 1000)
   end
 end
