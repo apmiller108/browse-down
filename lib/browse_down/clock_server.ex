@@ -3,6 +3,7 @@ defmodule BrowseDown.ClockServer do
   Schedules calls to the RenderServer at regular intervals.
   """
   use GenServer
+  require Logger
 
   alias BrowseDown.RenderServer
 
@@ -21,23 +22,18 @@ defmodule BrowseDown.ClockServer do
   # Server
 
   def init(state) do
-    {:ok, state}
-  end
-
-  def handle_cast(:start, state) do
     schedule_browse_down()
-    {:noreply, state}
+    {:ok, state}
   end
 
   def handle_info(:work, state) do
     schedule_browse_down()
     case RenderServer.render(RenderServer) do
-      # TODO: Log events
-      {:ok, _html} ->
-        IO.puts "Success"
+      {:ok, html} ->
+        Logger.info fn -> "Successfully rendered #{html}" end
         {:noreply, state}
       {:error, markdown} ->
-        IO.puts "Error rendering #{markdown}"
+        Logger.error fn -> "Error rendering #{markdown}" end
         {:noreply, state}
     end
     {:noreply, state}

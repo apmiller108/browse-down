@@ -7,6 +7,7 @@ config :logger,
     {LoggerFileBackend, :error}
   ]
 
-config :logger, :info, path: "/var/log/browse_down/info.log", level: :info
-config :logger, :warn, path: "/var/log/browse_down/warn.log", level: :warn
-config :logger, :error, path: "/var/log/browse_down/error.log", level: :error
+home_dir = System.get_env("HOME")
+config :logger, :info, path: "#{home_dir}/.browse_down/info.log", level: :info
+config :logger, :warn, path: "#{home_dir}/.browse_down/warn.log", level: :warn
+config :logger, :error, path: "#{home_dir}/.browse_down/error.log", level: :error

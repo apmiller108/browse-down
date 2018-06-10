@@ -3,7 +3,7 @@
 TODOs:
 [x] Move clock interval to env
 [ ] Fix CLI
-[ ] Log errors
+[x] Log errors
 [ ] Write more tests
 [ ] Write the readme
 

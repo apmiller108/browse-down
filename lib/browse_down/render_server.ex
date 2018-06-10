@@ -6,8 +6,7 @@ defmodule BrowseDown.RenderServer do
   """
 
   use GenServer
-
-  alias BrowseDown.ClockServer
+  require Logger
 
   # Client
 
@@ -22,7 +21,6 @@ defmodule BrowseDown.RenderServer do
   # Server
 
   def init(state) do
-    ClockServer.start_clock(ClockServer)
     {:ok, state}
   end
 
@@ -57,7 +55,9 @@ defmodule BrowseDown.RenderServer do
   defp convert_to_html({:ok, file, path}, converter \\ BrowseDown.MarkdownConverter) do
     case converter.convert(file, path) do
       {:ok, document} -> {:ok, document}
-      {:error, reason, path} -> {:error, path}
+      {:error, reason, path} ->
+        Logger.error "Unable to convert markdown: #{reason}"
+        {:error, path}
     end
   end
 
