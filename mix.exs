@@ -7,12 +7,10 @@ defmodule BrowseDown.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      escript: escript()
+      deps: deps()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger],
@@ -20,7 +18,6 @@ defmodule BrowseDown.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:earmark, "~> 1.2"},
@@ -31,9 +28,5 @@ defmodule BrowseDown.MixProject do
       {:credo, "~> 0.7", only: :dev},
       {:dialyxir, "~> 0.5", only: :dev, runtime: false}
     ]
-  end
-
-  defp escript do
-    [main_module: BrowseDown.CLI]
   end
 end
