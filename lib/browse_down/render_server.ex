@@ -34,10 +34,10 @@ defmodule BrowseDown.RenderServer do
   # Helper Functions
 
   def render do
-    "#{Application.get_env(:browse_down, :markdown_dir)}/**/*.{md,markdown}"
+    "#{Application.get_env(:browse_down, :markdown_dir)}/**/*.{md,markdown,html}"
     |> select_random_file
     |> open_file
-    |> convert_to_html
+    |> convert
     |> open_in_browser
   end
 
@@ -52,7 +52,15 @@ defmodule BrowseDown.RenderServer do
     {:ok, file, path}
   end
 
-  defp convert_to_html({:ok, file, path}, converter \\ BrowseDown.MarkdownConverter) do
+  defp convert({:ok, file, path}) do
+    %{"ext" => ext} = Regex.named_captures(~r/(?<ext>\..+$)/, path)
+    do_conversion({file, path, ext})
+  end
+
+  defp do_conversion(file_path_ext_tuple, converter \\ BrowseDown.MarkdownConverter)
+
+  defp do_conversion({file, path, ext}, converter)
+  when ext == ".md" or ext == ".markdown" do
     case converter.convert(file, path) do
       {:ok, document} -> {:ok, document}
       {:error, reason, path} ->
@@ -60,6 +68,8 @@ defmodule BrowseDown.RenderServer do
         {:error, path}
     end
   end
+
+  defp do_conversion({_file, path, ext}, _converter) when ext == ".html", do: {:ok, path}
 
   defp open_in_browser({:ok, document}) do
     System.cmd("open", [document])
